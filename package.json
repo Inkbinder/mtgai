@@ -1,0 +1,29 @@
+{
+  "name": "mtgai",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start:build": "ts-node src/index.ts build",
+    "start:query": "ts-node src/index.ts query",
+    "build:index": "npm run start:build",
+    "query": "ts-node src/index.ts query",
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.3.45",
+    "@langchain/core": "^0.3.57",
+    "@langchain/ollama": "^0.2.0",
+    "@tsconfig/node22": "^22.0.2",
+    "chromadb": "^2.4.6",
+    "langchain": "^0.3.27"
+  }
+}
