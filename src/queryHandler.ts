@@ -1,26 +1,14 @@
 // src/queryHandler.ts
-import { Ollama } from "@langchain/ollama";
+import { ChatOllama } from "@langchain/ollama";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
-import { createEmbeddingsModel } from "./embeddingsUtil";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
-export async function handleQuery(query: string) {
-
+export async function handleQuery(
+  query: string, 
+  vectorStore: Chroma
+) {
   let time = Date.now()
-  // Initialize embeddings
-  const embeddings = await createEmbeddingsModel();
-  console.log('Embeddings initialized in', Date.now() - time, 'ms')
-
-  time = Date.now()
-  // Initialize vector store
-  const vectorStore = await Chroma.fromExistingCollection(
-    embeddings,
-    {
-      collectionName: "mtg-rules",
-      url: "http://localhost:8000",
-    }
-  );
-  console.log('Vector store initialized in', Date.now() - time, 'ms')
-  time = Date.now()
+  
   // Retrieve relevant documents
   const relevantDocs = await vectorStore.similaritySearch(query, 5);
   const relevantChunks = relevantDocs.map(doc => doc.pageContent);
@@ -31,27 +19,27 @@ export async function handleQuery(query: string) {
   console.log('Context generated in', Date.now() - time, 'ms')
 
   time = Date.now()
-  // Initialize Ollama LLM
-  const llm = new Ollama({
+  // Initialize ChatOllama LLM
+  const chatModel = new ChatOllama({
     model: "mistral",
     baseUrl: "http://localhost:11434",
     temperature: 0,
   });
   
-  // Generate an answer
-  const prompt = `
+  // Create messages for the chat model
+  const systemMessage = new SystemMessage(`
     You are an expert on Magic: The Gathering rules.
     Answer the following question based on the provided context from the MTG Comprehensive Rules.
     If the answer cannot be found in the context, say "I don't have enough information to answer that question."
     
     Context:
     ${context}
-    
-    Question: ${query}
-    
-    Answer:
-  `;
-  console.log('LLM Init & Prompt generated in', Date.now() - time, 'ms')
-  const response = await llm.invoke(prompt);
-  return { answer: response, relevantRules: relevantChunks };
+  `);
+  
+  const humanMessage = new HumanMessage(query);
+  
+  console.log('Chat model Init & Messages generated in', Date.now() - time, 'ms')
+  // Invoke the chat model with messages
+  const response = await chatModel.invoke([systemMessage, humanMessage]);
+  return { answer: response.content, relevantRules: relevantChunks };
 }

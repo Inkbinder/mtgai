@@ -2,6 +2,8 @@
 import { processDocument } from './documentProcessor';
 import { storeDocuments } from './vectorStore';
 import { handleQuery } from './queryHandler';
+import {createEmbeddingsModel} from "./embeddingsUtil.ts";
+import {Chroma} from "@langchain/community/vectorstores/chroma";
 
 async function buildIndex(filePath: string) {
   try {
@@ -21,7 +23,15 @@ async function buildIndex(filePath: string) {
 async function query(question: string) {
   try {
     console.log(`Processing query: "${question}"`);
-    const result = await handleQuery(question);
+    const embeddings = await createEmbeddingsModel();
+    const vectorStore = await Chroma.fromExistingCollection(
+        embeddings,
+        {
+          collectionName: "mtg-rules",
+          url: "http://localhost:8000",
+        }
+    );
+    const result = await handleQuery(question, vectorStore);
     
     console.log('\nQuestion:', question);
     console.log('\nAnswer:', result.answer);

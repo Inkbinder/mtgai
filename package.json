@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
+    "start": "ts-node src/app.ts",
     "start:build": "ts-node src/index.ts build",
     "start:query": "ts-node src/index.ts query",
     "build:index": "npm run start:build",
